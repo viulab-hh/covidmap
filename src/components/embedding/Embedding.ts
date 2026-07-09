@@ -904,7 +904,7 @@ export class Embedding {
       .attr('stroke', 'hsla(44, 46%, 89%, 0.34)')
       .attr('stroke-width', 0.45)
       .attr('stroke-linejoin', 'round')
-      .attr('opacity', 0.96)
+      .attr('opacity', 0.78)
       .attr('d', d3.geoPath());
 
     // Zoom in to focus on the second level of the contour
@@ -1043,7 +1043,7 @@ export class Embedding {
       .attr('stroke', 'hsla(44, 46%, 89%, 0.28)')
       .attr('stroke-width', 0.4)
       .attr('stroke-linejoin', 'round')
-      .attr('opacity', 0.9)
+      .attr('opacity', 0.72)
       .attr('d', d3.geoPath());
 
     return contours;
