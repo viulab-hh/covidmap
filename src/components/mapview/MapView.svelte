@@ -10,10 +10,8 @@
   let component: HTMLElement | null = null;
   let datasetName = 'acl-abstracts';
   // let datasetName = 'temp';
-  const defaultDataURL =
-    'https://huggingface.co/datasets/cee-kay/covid19-preprints/resolve/main/data.ndjson';
-  const defaultGridURL =
-    'https://huggingface.co/datasets/cee-kay/covid19-preprints/resolve/main/grid.json';
+  const defaultDataURL = `${import.meta.env.BASE_URL}data/covid19-preprints/data.ndjson`;
+  const defaultGridURL = `${import.meta.env.BASE_URL}data/covid19-preprints/grid.json`;
   let dataURL: string | null = defaultDataURL;
   let gridURL: string | null = defaultGridURL;
   let notebookMode = false;
