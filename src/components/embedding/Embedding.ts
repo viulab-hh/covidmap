@@ -52,12 +52,29 @@ import TreeWorker from './workers/tree?worker&inline';
 
 const DEBUG = config.debug;
 const HOVER_RADIUS = 3;
+const TERRAIN_CONTOUR_COLORS = [
+  '#d7d1b8',
+  '#c7b184',
+  '#a87955',
+  '#765645',
+  '#3f4037',
+  '#9d9585',
+  '#ece7d8'
+];
 let handledFooterMessageID = 0;
 
 let DATA_BASE = `${import.meta.env.BASE_URL}data`;
 if (import.meta.env.PROD) {
   DATA_BASE = 'https://pub-596951ee767949aba9096a18685c74bd.r2.dev';
 }
+
+const getTerrainContourColorScale = (thresholds: number[]) => {
+  const extent = d3.extent(thresholds) as [number, number];
+  const normalize = d3.scaleLinear().domain(extent).range([0, 1]).clamp(true);
+  const terrainRamp = d3.interpolateRgbBasis(TERRAIN_CONTOUR_COLORS);
+
+  return (value: number) => terrainRamp(normalize(value));
+};
 
 /**
  * Class for the Embedding view
@@ -386,13 +403,13 @@ export class Embedding {
         `translate(${this.svgPadding.left}, ${this.svgPadding.top})`
       );
 
-    const topGroup = topSvg.append('g').attr('class', 'top-group');
-
-    topGroup
+    topSvg
       .append('rect')
       .attr('class', 'mouse-track-rect')
       .attr('width', this.svgFullSize.width)
       .attr('height', this.svgFullSize.height);
+
+    const topGroup = topSvg.append('g').attr('class', 'top-group');
 
     const topContent = topGroup.append('g').attr('class', 'top-content');
 
@@ -732,6 +749,73 @@ export class Embedding {
         `translate(${this.svgPadding.left}, ${this.svgPadding.top})`
       );
 
+    const defs = this.svg.append('defs');
+    const reliefFilter = defs
+      .append('filter')
+      .attr('id', 'terrain-shader')
+      .attr('x', '-3%')
+      .attr('y', '-3%')
+      .attr('width', '106%')
+      .attr('height', '106%')
+      .attr('color-interpolation-filters', 'sRGB');
+
+    reliefFilter
+      .append('feGaussianBlur')
+      .attr('in', 'SourceAlpha')
+      .attr('stdDeviation', 0.45)
+      .attr('result', 'elevation');
+
+    const diffuseLighting = reliefFilter
+      .append('feDiffuseLighting')
+      .attr('in', 'elevation')
+      .attr('surfaceScale', 3.1)
+      .attr('diffuseConstant', 0.68)
+      .attr('lighting-color', '#ffe7b2')
+      .attr('result', 'light');
+
+    diffuseLighting
+      .append('feDistantLight')
+      .attr('azimuth', 315)
+      .attr('elevation', 42);
+
+    reliefFilter
+      .append('feComposite')
+      .attr('in', 'light')
+      .attr('in2', 'SourceAlpha')
+      .attr('operator', 'in')
+      .attr('result', 'clippedLight');
+
+    reliefFilter
+      .append('feOffset')
+      .attr('in', 'SourceGraphic')
+      .attr('dx', 1.5)
+      .attr('dy', 1.9)
+      .attr('result', 'shadowOffset');
+
+    reliefFilter
+      .append('feFlood')
+      .attr('flood-color', '#19201e')
+      .attr('flood-opacity', 0.28)
+      .attr('result', 'shadowColor');
+
+    reliefFilter
+      .append('feComposite')
+      .attr('in', 'shadowColor')
+      .attr('in2', 'shadowOffset')
+      .attr('operator', 'in')
+      .attr('result', 'terrainShadow');
+
+    reliefFilter
+      .append('feBlend')
+      .attr('in', 'SourceGraphic')
+      .attr('in2', 'clippedLight')
+      .attr('mode', 'screen')
+      .attr('result', 'litTerrain');
+
+    const merge = reliefFilter.append('feMerge');
+    merge.append('feMergeNode').attr('in', 'terrainShadow');
+    merge.append('feMergeNode').attr('in', 'litTerrain');
+
     umapGroup
       .append('g')
       .attr('class', 'contour-group')
@@ -812,16 +896,7 @@ export class Embedding {
       return item;
     });
 
-    // Create a new blue interpolator based on d3.interpolateBlues
-    // (starting from white here)
-    const blueScale = d3.interpolateLab(
-      '#ffffff',
-      config.layout['groupColors'][0]
-    );
-    const colorScale = d3.scaleSequential(
-      d3.extent(thresholds) as number[],
-      d => blueScale(d / 1)
-    );
+    const colorScale = getTerrainContourColorScale(thresholds);
 
     // Draw the contours
     contourGroup
@@ -829,6 +904,11 @@ export class Embedding {
       .data(contours.slice(1))
       .join('path')
       .attr('fill', d => colorScale(d.value))
+      .attr('filter', 'url(#terrain-shader)')
+      .attr('stroke', 'hsla(44, 46%, 89%, 0.34)')
+      .attr('stroke-width', 0.45)
+      .attr('stroke-linejoin', 'round')
+      .attr('opacity', 0.96)
       .attr('d', d3.geoPath());
 
     // Zoom in to focus on the second level of the contour
@@ -955,16 +1035,7 @@ export class Embedding {
       return item;
     });
 
-    // Create a new color interpolator
-    // (starting from white here)
-    const colorScaleInterpolator = d3.interpolateLab(
-      '#ffffff',
-      config.layout['groupColors'][this.groupNames?.indexOf(group) || 0]
-    );
-    const colorScale = d3.scaleSequential(
-      d3.extent(thresholds) as number[],
-      d => colorScaleInterpolator(d / 1)
-    );
+    const colorScale = getTerrainContourColorScale(thresholds);
 
     // Draw the contours
     contourGroup
@@ -972,6 +1043,11 @@ export class Embedding {
       .data(contours.slice(1))
       .join('path')
       .attr('fill', d => colorScale(d.value))
+      .attr('filter', 'url(#terrain-shader)')
+      .attr('stroke', 'hsla(44, 46%, 89%, 0.28)')
+      .attr('stroke-width', 0.4)
+      .attr('stroke-linejoin', 'round')
+      .attr('opacity', 0.9)
       .attr('d', d3.geoPath());
 
     return contours;

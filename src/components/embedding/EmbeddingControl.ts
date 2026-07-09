@@ -8,8 +8,25 @@ import fragmentShader from './shaders/point.frag?raw';
 import vertexShader from './shaders/point.vert?raw';
 
 const DEBUG = config.debug;
+const TERRAIN_CONTOUR_COLORS = [
+  '#d7d1b8',
+  '#c7b184',
+  '#a87955',
+  '#765645',
+  '#3f4037',
+  '#9d9585',
+  '#ece7d8'
+];
 let sliderAnimationStartTime: number | null = null;
 let curSliderProgress = 0;
+
+const getTerrainContourColorScale = (thresholds: number[]) => {
+  const extent = d3.extent(thresholds) as [number, number];
+  const normalize = d3.scaleLinear().domain(extent).range([0, 1]).clamp(true);
+  const terrainRamp = d3.interpolateRgbBasis(TERRAIN_CONTOUR_COLORS);
+
+  return (value: number) => terrainRamp(normalize(value));
+};
 
 /**
  * Event handler for the thumb mouse down on time slider
@@ -273,15 +290,7 @@ export function drawContourTimeSlice(this: Embedding) {
     return item;
   });
 
-  // Create a new blue interpolator based on d3.interpolateBlues
-  // (starting from white here)
-  const colorInterpolate = d3.interpolateLab(
-    '#ffffff',
-    config.colors['purple-800']
-  );
-  const colorScale = d3.scaleSequential(d3.extent(thresholds) as number[], d =>
-    colorInterpolate(d / 1)
-  );
+  const colorScale = getTerrainContourColorScale(thresholds);
 
   // Draw the contours
   contourGroup
@@ -289,6 +298,11 @@ export function drawContourTimeSlice(this: Embedding) {
     .data(contours.slice(1))
     .join('path')
     .attr('fill', d => colorScale(d.value))
+    .attr('filter', 'url(#terrain-shader)')
+    .attr('stroke', 'hsla(44, 46%, 89%, 0.28)')
+    .attr('stroke-width', 0.4)
+    .attr('stroke-linejoin', 'round')
+    .attr('opacity', 0.92)
     .attr('d', d3.geoPath());
 
   // Animate the contours with Flubber (not working)

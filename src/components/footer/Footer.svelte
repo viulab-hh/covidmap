@@ -169,8 +169,13 @@
   </div>
 
   <div class="footer">
+    <a href="https://viulab.haw-hamburg.de/"
+      ><span class="item">Computation by viu:lab</span></a
+    >
+    <div class="splitter"></div>
+
     <span class="name"
-      ><span class="svg-icon">{@html iconWizmap}</span>WizMap
+      ><span class="svg-icon">{@html iconWizmap}</span>based on WizMap
     </span>
     <div class="splitter"></div>
 
