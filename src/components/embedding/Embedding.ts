@@ -1212,6 +1212,11 @@ export class Embedding {
         break;
       }
 
+      case 'loadDataError': {
+        console.error(`Failed to load point data: ${e.data.payload.message}`);
+        break;
+      }
+
       default: {
         console.error('Unknown message', e.data.command);
         break;

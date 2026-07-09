@@ -4,15 +4,11 @@ import type {
   UMAPPointStreamData,
   LoaderWorkerMessage
 } from '../../../types/embedding-types';
-import {
-  splitStreamTransform,
-  parseJSONTransform,
-  timeit
-} from '../../../utils/utils';
+import { timeit } from '../../../utils/utils';
 import { config } from '../../../config/config';
 
 const DEBUG = config.debug;
-const POINT_THRESHOLD = 5000;
+const POINT_THRESHOLD = 1000;
 
 let pendingDataPoints: PromptPoint[] = [];
 let loadedPointCount = 0;
@@ -47,40 +43,90 @@ self.onmessage = (e: MessageEvent<LoaderWorkerMessage>) => {
  * Start loading the large UMAP data
  * @param url URL to the NDJSON file
  */
-const startLoadData = (url: string) => {
-  fetch(url).then(async response => {
+const startLoadData = async (url: string) => {
+  pendingDataPoints = [];
+  loadedPointCount = 0;
+  sentPointCount = 0;
+  lastDrawnPoints = null;
+
+  try {
+    const response = await fetch(url);
+
     if (!response.ok) {
-      console.error('Failed to load data', response);
+      reportLoadError(`Failed to load data: ${response.status} ${response.statusText}`);
       return;
     }
 
-    const reader = response.body
-      ?.pipeThrough(new TextDecoderStream())
-      ?.pipeThrough(splitStreamTransform('\n'))
-      ?.pipeThrough(parseJSONTransform())
-      ?.getReader();
-
-    while (true && reader !== undefined) {
-      const result = await reader.read();
-      const point = result.value as UMAPPointStreamData;
-      const done = result.done;
-
-      if (done) {
-        timeit('Stream data', DEBUG);
-        pointStreamFinished();
-        break;
-      } else {
-        processPointStream(point);
-
-        // // TODO: Remove me in prod
-        // if (loadedPointCount >= 305000) {
-        //   pointStreamFinished();
-        //   timeit('Stream data', DEBUG);
-        //   break;
-        // }
-      }
+    if (!response.body) {
+      await loadDataFromText(response);
+      return;
     }
-  });
+
+    await loadDataFromStream(response.body);
+  } catch (error) {
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        reportLoadError(
+          `Failed to load data fallback: ${response.status} ${response.statusText}`
+        );
+        return;
+      }
+      await loadDataFromText(response);
+    } catch (fallbackError) {
+      reportLoadError(getErrorMessage(fallbackError || error));
+    }
+  }
+};
+
+const loadDataFromStream = async (body: ReadableStream<Uint8Array>) => {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+
+  while (true) {
+    const result = await reader.read();
+    if (result.done) break;
+
+    buffer += decoder.decode(result.value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+
+    for (const line of lines) {
+      processLine(line);
+    }
+  }
+
+  buffer += decoder.decode();
+  processLine(buffer);
+  timeit('Stream data', DEBUG);
+  pointStreamFinished();
+};
+
+const loadDataFromText = async (response: Response) => {
+  const text = await response.text();
+  for (const line of text.split('\n')) {
+    processLine(line);
+  }
+  timeit('Stream data', DEBUG);
+  pointStreamFinished();
+};
+
+const processLine = (line: string) => {
+  if (line.trim() === '') return;
+  processPointStream(JSON.parse(line) as UMAPPointStreamData);
+};
+
+const getErrorMessage = (error: unknown) =>
+  error instanceof Error ? error.message : String(error);
+
+const reportLoadError = (message: string) => {
+  console.error(message);
+  const result: LoaderWorkerMessage = {
+    command: 'loadDataError',
+    payload: { message }
+  };
+  postMessage(result);
 };
 
 /**

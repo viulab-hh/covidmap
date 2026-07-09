@@ -109,6 +109,12 @@ export type LoaderWorkerMessage =
         points: PromptPoint[];
         loadedPointCount: number;
       };
+    }
+  | {
+      command: 'loadDataError';
+      payload: {
+        message: string;
+      };
     };
 
 export interface LabelData {
