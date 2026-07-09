@@ -8,22 +8,6 @@ import { defineConfig } from 'vite';
 //   plugins: [svelte()]
 // });
 
-const removeDataDir = () => {
-  return {
-    name: 'remove-data-dir',
-    resolveId(source) {
-      return source === 'virtual-module' ? source : null;
-    },
-    writeBundle(outputOptions, inputOptions) {
-      const outDir = outputOptions.dir;
-      const dataDir = path.resolve(outDir, 'data');
-      fs.rm(dataDir, { recursive: true }, () =>
-        console.log(`Deleted ${dataDir}`)
-      );
-    }
-  };
-};
-
 // https://vitejs.dev/config/
 export default defineConfig(({ command, mode }) => {
   if (command === 'serve') {
@@ -54,13 +38,13 @@ export default defineConfig(({ command, mode }) => {
       }
 
       case 'github': {
-        // Production: github page
+        // Production: GitHub Pages
         return {
-          base: '/wizmap/',
+          base: './',
           build: {
             outDir: 'gh-page'
           },
-          plugins: [svelte(), removeDataDir()]
+          plugins: [svelte()]
         };
       }
 

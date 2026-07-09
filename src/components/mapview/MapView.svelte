@@ -11,8 +11,12 @@
   let component: HTMLElement | null = null;
   let datasetName = 'acl-abstracts';
   // let datasetName = 'temp';
-  let dataURL: string | null = null;
-  let gridURL: string | null = null;
+  const defaultDataURL =
+    'https://huggingface.co/datasets/cee-kay/covid19-preprints/resolve/main/data.ndjson';
+  const defaultGridURL =
+    'https://huggingface.co/datasets/cee-kay/covid19-preprints/resolve/main/grid.json';
+  let dataURL: string | null = defaultDataURL;
+  let gridURL: string | null = defaultGridURL;
   let notebookMode = false;
 
   // Check url query to change dataset names
@@ -25,7 +29,6 @@
     if (searchParams.has('dataURL') && searchParams.has('gridURL')) {
       dataURL = searchParams.get('dataURL') as string;
       gridURL = searchParams.get('gridURL') as string;
-      console.log(dataURL, gridURL);
     }
   }
 
