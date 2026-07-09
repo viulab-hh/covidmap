@@ -323,11 +323,7 @@ export class Embedding {
       .attr('height', `${this.svgFullSize.height}px`);
     this.pointRegl = createRegl(this.pointCanvas!.node() as HTMLCanvasElement);
 
-    // Fade the canvas if the default is to show labels
-    this.pointCanvas.classed(
-      'faded',
-      anyTrue(this.showPoints) && this.showLabel
-    );
+    this.pointCanvas.classed('faded', false);
 
     this.searchPointCanvas = d3
       .select(this.component)

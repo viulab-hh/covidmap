@@ -33,7 +33,7 @@ void main() {
   // Scale the point based on the zoom level
   // https://observablehq.com/@bmschmidt/zoom-strategies-for-huge-scatterplots-with-three-js
   float dynamicSize = pointWidth * (exp(log(zoomMatrix[0][0]) * 0.55));
-  float dynamicAlpha = min(0.4, max(0.1, alpha * log(zoomMatrix[0][0]) / 2.0));
+  float dynamicAlpha = min(0.58, max(0.24, alpha * log(zoomMatrix[0][0]) / 2.0));
   dynamicAlpha = max(userAlpha, dynamicAlpha);
 
   fragTextureCoord = textureCoord;
