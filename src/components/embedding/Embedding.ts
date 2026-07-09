@@ -901,8 +901,8 @@ export class Embedding {
       .join('path')
       .attr('fill', d => colorScale(d.value))
       .attr('filter', 'url(#terrain-shader)')
-      .attr('stroke', 'hsla(44, 46%, 89%, 0.34)')
-      .attr('stroke-width', 0.45)
+      .attr('stroke', 'hsla(44, 46%, 89%, 0.24)')
+      .attr('stroke-width', 0.28)
       .attr('stroke-linejoin', 'round')
       .attr('opacity', 0.78)
       .attr('d', d3.geoPath());
@@ -1040,8 +1040,8 @@ export class Embedding {
       .join('path')
       .attr('fill', d => colorScale(d.value))
       .attr('filter', 'url(#terrain-shader)')
-      .attr('stroke', 'hsla(44, 46%, 89%, 0.28)')
-      .attr('stroke-width', 0.4)
+      .attr('stroke', 'hsla(44, 46%, 89%, 0.22)')
+      .attr('stroke-width', 0.24)
       .attr('stroke-linejoin', 'round')
       .attr('opacity', 0.72)
       .attr('d', d3.geoPath());

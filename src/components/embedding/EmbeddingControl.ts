@@ -299,8 +299,8 @@ export function drawContourTimeSlice(this: Embedding) {
     .join('path')
     .attr('fill', d => colorScale(d.value))
     .attr('filter', 'url(#terrain-shader)')
-    .attr('stroke', 'hsla(44, 46%, 89%, 0.28)')
-    .attr('stroke-width', 0.4)
+    .attr('stroke', 'hsla(44, 46%, 89%, 0.22)')
+    .attr('stroke-width', 0.24)
     .attr('stroke-linejoin', 'round')
     .attr('opacity', 0.74)
     .attr('d', d3.geoPath());

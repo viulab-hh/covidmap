@@ -289,7 +289,7 @@ const layout = {
   defaultPointColorInt: [48, 65, 159],
   secondPointColorInt: [194, 24, 92],
   timePointColorInt: [123, 31, 162],
-  contourLevels: 12,
+  contourLevels: 28,
   searchLimit: 5000,
   groupColors: [colors['light-blue-800'], colors['pink-900']]
 };
