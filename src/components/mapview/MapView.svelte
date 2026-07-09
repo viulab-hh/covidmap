@@ -6,7 +6,6 @@
   } from '../../stores';
   import Embedding from '../embedding/Embedding.svelte';
   import Footer from '../footer/Footer.svelte';
-  import SearchPanel from '../search-panel/SearchPanel.svelte';
 
   let component: HTMLElement | null = null;
   let datasetName = 'acl-abstracts';
@@ -75,9 +74,5 @@
 
   <div class="footer-container">
     <Footer {footerStore} />
-  </div>
-
-  <div class="search-panel-container">
-    <SearchPanel searchPanelStore="{searchBarStore}" />
   </div>
 </div>

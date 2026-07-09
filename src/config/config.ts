@@ -280,7 +280,7 @@ const colors = {
 
 const layout = {
   scatterDotRadius: 1,
-  searchPanelWidth: 356,
+  searchPanelWidth: 0,
   topBarHeight: 30,
   footerHeight: 30,
   timeSliderWidth: 400,
