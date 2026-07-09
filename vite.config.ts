@@ -40,7 +40,7 @@ export default defineConfig(({ command, mode }) => {
       case 'github': {
         // Production: GitHub Pages
         return {
-          base: './',
+          base: '/covidmap/',
           build: {
             outDir: 'gh-page'
           },
