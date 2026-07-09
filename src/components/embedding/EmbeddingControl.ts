@@ -302,7 +302,7 @@ export function drawContourTimeSlice(this: Embedding) {
     .attr('stroke', 'hsla(44, 46%, 89%, 0.28)')
     .attr('stroke-width', 0.4)
     .attr('stroke-linejoin', 'round')
-    .attr('opacity', 0.92)
+    .attr('opacity', 0.74)
     .attr('d', d3.geoPath());
 
   // Animate the contours with Flubber (not working)
